@@ -1,0 +1,17 @@
+    In this section, we implemented a greedy algorithm for our coloring
+problems, and then compared our results to those from our exhaustive
+algorithm.  To implement the greedy algorithm, we  sorted the nodes by
+its' out degree, and colored each node in decreasing degree order.  In
+coloring a node, the algorithm randomly colors the node fom a list of valid
+colors.  If no valid color exists, it randomly colors it, creating a conflict
+. This algorithm is much more efficient than our exhaustive algorithm, as
+even the largest instances only took a few seconds.  This is because our
+greedy algorithm runs in O(|e|) time.  This is achieved because the program
+sets the number of degrees for each node, and then looks at each node only
+once.  Because there are always more edges than nodes, we can ignore the
+number of nodes in the graph.  While we have to sort the degrees, because
+thee are only n entries, we can ignore this amount of time elapsed.
+Additionally, we must look through all edges again, this time comparing every
+ given nodes with it's neighbors for conflicts.  This can be considered in
+ our runtime, but since this adds O(|e|) time, we can can ignore this in our
+ final big O notation.

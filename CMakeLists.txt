@@ -15,6 +15,6 @@ if(NOT Boost_FOUND)
     message(FATAL_ERROR "Could not find boost!")
 endif()
 include_directories(${Boost_INCLUDE_DIRS})
-set(SOURCE_FILES main.cpp d_except.h)
+set(SOURCE_FILES main.cpp d_except.h d_random.h)
 add_executable(Project_1 ${SOURCE_FILES})
 

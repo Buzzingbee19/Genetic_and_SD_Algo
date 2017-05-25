@@ -6,6 +6,7 @@
 #include <fstream>
 #include <vector>
 #include <boost/graph/adjacency_list.hpp>
+#include "d_random.h"
 
 #define LargeValue 99999999
 
@@ -70,99 +71,107 @@ void setNodeWeights(Graph &g, int w)
    }
 }
 
-void optimizeColorConflicts(Graph &g, int timelim, int& numcolors, string name)
+vector<bool> validColors(Graph &g, int &nodeindex, int &numcolors, vector <int>
+                                                                  &colorlist)
 {
-   int bestcon = LargeValue, conflicts = 0;
-   vector<int> colors, bestcolors;
-   float trials = 0;
-   time_t starttime = clock(), currtime = clock();
-   float elapsedtime = 0;
-
-   colors.resize(num_vertices(g), 0);
-   trials = (float)pow(numcolors, num_vertices(g)); //ex. 3 digit comb lock =
-   // 10^3
-   if (trials < 0)
-      trials = LargeValue;
+   vector<bool> validcolors(numcolors, true);
    Graph::vertex_iterator vertexIt, vertexEnd;
    Graph::in_edge_iterator inedgeIt, inedgeEnd;
-   Graph::in_edge_iterator outedgeIt, outedgeEnd;
    Graph::adjacency_iterator neighbourIt, neighbourEnd;
+
+   tie(neighbourIt, neighbourEnd)=adjacent_vertices(nodeindex,g);
+   for (; neighbourIt != neighbourEnd; ++neighbourIt)
+   {
+      validcolors[colorlist[*neighbourIt]] = false;
+   }
+   return validcolors;
+}
+
+void optimizeColorConflicts(Graph &g, int timelim, int& numcolors, string name)
+{
+
+   //initializes all necessary variables, including graph iterator
+   int conflicts = 0, deg, maxdeg = 0, unselected = 0, random;
+   vector<int> colors (num_vertices(g), 0);
+   vector<bool> validcolors (num_vertices(g), true), selected (num_vertices(g), false);
+   float elapsedtime = 0;
+   time_t starttime = clock(), currtime = clock();
+   vector <pair<int, int>> outdeg; //first int: outdegree, second int: node
+   pair <int, int> vectordeg, currnode;
+   randomNumber r;
+   Graph::vertex_iterator vertexIt, vertexEnd;
+   Graph::in_edge_iterator inedgeIt, inedgeEnd;
+   Graph::adjacency_iterator neighbourIt, neighbourEnd;
+
    tie(vertexIt, vertexEnd) = vertices(g);
-   vector <int> outdeg;
-   int deg, unselected, maxdeg = 0, maxdegnode;
    for (; vertexIt != vertexEnd; ++vertexIt)
    {
       deg = 0;
+      vectordeg.second = (int)*vertexIt;
       tie(inedgeIt, inedgeEnd) = in_edges(*vertexIt, g);
+
       for(; inedgeIt != inedgeEnd; ++inedgeIt)
          deg++;
-      outdeg.push_back(deg);
+
+      vectordeg.first = deg;
+      outdeg.push_back(vectordeg);
+
       if (deg > maxdeg)
-      {
          maxdeg = deg;
-         maxdegnode = (int)*vertexIt;
-      }
       unselected++;
    }
- while(unselected > 0)
- {
 
- }
+   sort(outdeg.begin(), outdeg.end());
 
+   while(unselected > 0) {
 
-   /*
-   for (int i = 0; i < trials; i++) //runs for number of combinations
-   {
-      conflicts = 0;
-      //check for conflicts
+      currnode = outdeg.back();
+      outdeg.pop_back();
 
-      int j = (int)num_vertices(g) - 1;
-      int basenum = i;
+      validcolors = validColors(g, currnode.second, numcolors, colors);
 
-      while (basenum != 0 && j > -1) // creates a base number for the colors
-      {
-         colors[j] = basenum % numcolors;
-         basenum = basenum / numcolors;
-         j--;
+      if (std::none_of(validcolors.begin(), validcolors.end(),
+                       [](bool v) { return v; }))
+         colors[currnode.second] = (int) abs(r.random()) % numcolors;
+      else {
+         do {
+            random = (int) abs(r.random()) % numcolors;
+
+            if (random < 0)
+               random = abs(random) % numcolors;
+
+         } while (validcolors[random] == false);
+         colors[currnode.second] = random;
       }
 
-      Graph::vertex_iterator vertexIt, vertexEnd;
-      Graph::adjacency_iterator neighbourIt, neighbourEnd;
-      tie(vertexIt, vertexEnd) = vertices(g);
-      for (; vertexIt != vertexEnd; ++vertexIt)
-      {
-         tie(neighbourIt, neighbourEnd) = adjacent_vertices(*vertexIt, g);
-
-         for (; neighbourIt != neighbourEnd; ++neighbourIt)
-         {
-            if (colors[*neighbourIt] == colors[*vertexIt])
-               conflicts++;
-         }
-      }
-
-      if (conflicts < bestcon) {
-         bestcon = conflicts;
-         bestcolors = colors;
-      }
-      currtime = clock();
-      elapsedtime = (float)(currtime - starttime)/CLOCKS_PER_SEC;
-
-
-      if (elapsedtime >= timelim || i == trials - 1 || conflicts == 0)
-      {
-         ofstream myfile;
-         string out = ".output";
-         myfile.open((name + out));
-         myfile << "fewest number of conflicts: " << bestcon << endl;
-         for (int bestsol = 0; bestsol < num_vertices(g); bestsol++)
-         {
-            myfile << "node color: " << bestcolors[bestsol] << endl;
-         }
-         return;
-      }
-
+      unselected--;
    }
-*/
+
+   tie(vertexIt, vertexEnd) = vertices(g);
+   for (; vertexIt != vertexEnd; ++vertexIt) {
+
+      tie(neighbourIt, neighbourEnd) = adjacent_vertices(*vertexIt, g);
+      for (; neighbourIt != neighbourEnd; ++neighbourIt) {
+         if (colors[*neighbourIt] == colors[*vertexIt]) {
+            conflicts++;
+         }
+      }
+   }
+
+   currtime = clock();
+   elapsedtime = (float)(currtime - starttime)/CLOCKS_PER_SEC;
+   ofstream myfile;
+   string out = ".output";
+   myfile.open((name + out));
+   cout << "fewest number of conflicts: " << conflicts << endl;
+   myfile << "fewest number of conflicts: " << conflicts << endl;
+   for (int bestsol = 0; bestsol < num_vertices(g); bestsol++)
+   {
+      myfile << "node " << bestsol;
+      myfile << " color: " << colors[bestsol] << endl;
+   }
+   return;
+
 }
 
 int main()
