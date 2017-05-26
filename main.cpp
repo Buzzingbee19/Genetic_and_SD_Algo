@@ -18,7 +18,7 @@ int const NONE = -1;  // Used to represent a node that does not exist
 struct VertexProperties;
 struct EdgeProperties;
 
-typedef adjacency_list<vecS, vecS, bidirectionalS, VertexProperties, EdgeProperties> Graph;
+typedef adjacency_list<vecS, vecS, undirectedS, VertexProperties, EdgeProperties> Graph;
 
 struct VertexProperties
 {
