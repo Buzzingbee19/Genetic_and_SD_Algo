@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.7)
-project(Project_1_b)
+project(Project_5b)
 
 set(CMAKE_CXX_STANDARD 11)
 set(BOOST_ROOT "/Users/student/addlib/boost_1_57_0")
@@ -16,5 +16,5 @@ if(NOT Boost_FOUND)
 endif()
 include_directories(${Boost_INCLUDE_DIRS})
 set(SOURCE_FILES main.cpp d_except.h d_random.h)
-add_executable(Project_1 ${SOURCE_FILES})
+add_executable(Project_5b ${SOURCE_FILES})
 
